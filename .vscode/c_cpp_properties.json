@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "micro:bit v2",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "MICROBIT_CODAL=1"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        },
+        {
+            "name": "micro:bit v1",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "MICROBIT_CODAL=0"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
