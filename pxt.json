@@ -8,8 +8,6 @@
         "README.md",
         "enums.d.ts",
         "shims.d.ts",
-        "virtualride.ts",
-        "virtualride.cpp",
         "lib/struct/include/struct/struct.h",
         "lib/struct/src/struct.c",
         "lib/struct/src/struct_endian.h",
