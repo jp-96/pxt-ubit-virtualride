@@ -9,7 +9,13 @@
         "enums.d.ts",
         "shims.d.ts",
         "virtualride.ts",
-        "virtualride.cpp"
+        "virtualride.cpp",
+        "lib/struct/include/struct/struct.h",
+        "lib/struct/src/struct.c",
+        "lib/struct/src/struct_endian.h",
+        "lib/struct/src/struct_endian.c",
+        "lib/BLEFitnessMachineService.h",
+        "lib/BLEFitnessMachineService.cpp"
     ],
     "testFiles": [
         "test.ts"
