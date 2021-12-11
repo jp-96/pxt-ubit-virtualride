@@ -23,24 +23,28 @@ SOFTWARE.
 */
 
 #include "pxt.h"
+#include "lib/BLEFitnessMachineService.h"
 
 namespace virtualride {
-
-    int lastResistanceLevel=1;
+    
+    BLEFitnessMachineService* _pService = NULL;
+    int _lastResistanceLevel = 1;
 
     //%
     void advertise() {
-        return;
+        if (NULL!=_pService) return;
+        _pService = new BLEFitnessMachineService();
     }
 
     //%
     void setResistanceLevel(int resistanceLevel) {
-        lastResistanceLevel = resistanceLevel;
+        _lastResistanceLevel = resistanceLevel;
     }
     
     //%
     void notifyIndoorBikeData(int speed100, int cadence2, int power) {
-        return;
+        if (NULL==_pService) return;
+        _pService->notifyIndoorBikeData(speed100, cadence2, _lastResistanceLevel, power);
     }
 
     // Coefficient of Cadence and Speed
@@ -68,7 +72,7 @@ namespace virtualride {
             cadence2  = (int)( K_CRANK_CADENCE / crankIntervalTime );
             speed100 = (int)( K_CRANK_SPEED   / crankIntervalTime );
             // https://diary.cyclekikou.net/archives/15876
-            power = (int)( (double)(speed100) * (K_INCLINE_A * ((double)lastResistanceLevel + K_INCLINE_B) * K_POWER) );
+            power = (int)( (double)(speed100) * (K_INCLINE_A * ((double)_lastResistanceLevel + K_INCLINE_B) * K_POWER) );
         }
         notifyIndoorBikeData(speed100, cadence2, power);
     }
@@ -85,19 +89,29 @@ namespace virtualride {
 
     //%
     void onFitnessMachineControlPoint(virtualrideFMCP op, Action body) {
-        // https://www.sciencedirect.com/science/article/pii/S1383762118306088
-        // 接続
-        // registerWithDal(MICROBIT_ID_BLE, MICROBIT_BLE_EVT_CONNECTED, body);
+        switch (op)
+        {
+            case virtualrideFMCP::SET_TARGET_RESISTANCE_LEVEL:
+                registerWithDal(CUSTOM_EVENT_ID_VIRTUAL_RIDE, VIRTUAL_RIDE_EVT_SET_TARGET_RESISTANCE_LEVEL, body);
+                break;
+            case virtualrideFMCP::SET_INDOOR_BIKE_SIMULATION:
+                registerWithDal(CUSTOM_EVENT_ID_VIRTUAL_RIDE, VIRTUAL_RIDE_EVT_SET_INDOOR_BIKE_SIMULATION, body);
+                break;
+            default:
+                break;
+        }
     }
 
     //%
     int getTargetResistanceLevel10() {
-        return 10;
+        if (NULL==_pService) return VAL_MINIMUM_RESISTANCE_LEVEL;
+        return _pService->getTargetResistanceLevel10();
     }
 
     //%
     int getGrade100() {
-        return 0;
+        if (NULL==_pService) return 0;
+        return _pService->getGrade100();
     }
 
 }

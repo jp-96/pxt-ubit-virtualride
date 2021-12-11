@@ -51,11 +51,11 @@ namespace virtualride {
 
     /**
      * Set resistanceLevel 
-     * @param resistanceLevel Resistance Level (1 - 20)
+     * @param resistanceLevel Resistance Level (1 - 8)
      */
     //% blockId=virtualride_set_resistance_level
     //% block="Set Resistance Level %resistanceLevel"
-    //% resistanceLevel.min=1 resistanceLevel.max=20 resistanceLevel.defl=1
+    //% resistanceLevel.min=1 resistanceLevel.max=8 resistanceLevel.defl=1
     //% shim=virtualride::setResistanceLevel
     export function setResistanceLevel(resistanceLevel: number): void {
         return;
