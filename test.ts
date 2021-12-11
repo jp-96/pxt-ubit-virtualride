@@ -1,13 +1,13 @@
 // tests go here; this will not be compiled when this package is used as an extension.
-input.onButtonPressed(Button.A, function () {
-    a = custom.bar(a)
-})
-input.onButtonPressed(Button.B, function () {
-    a = 0
-})
-let a = 0
-a = 0
+virtualride.advertise()
+virtualride.setResistanceLevel(1)
 basic.forever(function () {
-    basic.showNumber(a)
-    basic.pause(100)
+    basic.pause(1000)
+    virtualride.calcAndNotifyIndoorBikeData(975609)
+})
+virtualride.onFitnessMachineControlPoint(virtualrideFMCP.SET_TARGET_RESISTANCE_LEVEL, function () {
+    basic.showNumber(virtualride.getTargetResistanceLevel10())
+})
+virtualride.onFitnessMachineControlPoint(virtualrideFMCP.SET_INDOOR_BIKE_SIMULATION, function () {
+    basic.showNumber(virtualride.getGrade100())
 })

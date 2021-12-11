@@ -1,5 +1,5 @@
 {
-    "name": "pxt-ubit-extension",
+    "name": "pxt-ubit-virtualride",
     "description": "",
     "dependencies": {
         "core": "*"
@@ -8,10 +8,8 @@
         "README.md",
         "enums.d.ts",
         "shims.d.ts",
-        "custom.ts",
-        "custom.cpp",
-        "lib/customlib.h",
-        "lib/customlib.cpp"
+        "virtualride.ts",
+        "virtualride.cpp"
     ],
     "testFiles": [
         "test.ts"
