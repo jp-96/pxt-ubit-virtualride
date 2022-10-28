@@ -123,5 +123,35 @@
             "$tsc"
         ],
         "group": "build"
+    },
+    {
+        "label": "(vscode) rm package-lock.json",
+        "type": "shell",
+        "command": "rm",
+        "args": [
+            "package-lock.json"
+        ],
+        "problemMatcher": [
+            "$tsc"
+        ],
+        "group": "build"
+    },
+    {
+        "label": "(vscode) Set target to micro:bit",
+        "type": "shell",
+        "command": "echo",
+        "args": [
+            "done!"
+        ],
+        "dependsOrder": "sequence",
+        "dependsOn": [
+            "(vscode) pxt target microbit",
+            "(vscode) pxt install",
+            "(vscode) rm package-lock.json"
+        ],
+        "problemMatcher": [
+            "$tsc"
+        ],
+        "group": "build"
     }]
 }
