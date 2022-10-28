@@ -179,7 +179,7 @@ static const uint16_t MICROBIT_CUSTOM_ID_BASE = 32768;
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
 
-class BLEFitnessMachineServiceDal //: public MicroBitBLEService
+class BLEFitnessMachineServiceDal : public MicroBitBLEService
 {
     public:
 
@@ -214,6 +214,32 @@ class BLEFitnessMachineServiceDal //: public MicroBitBLEService
 
     // Bluetooth stack we're running on.
     BLEDevice &ble;
+    
+    // Index for each charactersitic in arrays of handles and UUIDs
+    typedef enum mbbs_cIdx
+    {
+        mbbs_cIdxIndoorBikeData,
+        mbbs_cIdxFitnessMachineControlPoint,
+        mbbs_cIdxFitnessMachineFeature,
+        mbbs_cIdxFitnessMachineStatus,
+        mbbs_cIdxFitnessTrainingStatus,
+        mbbs_cIdxFitnessSupportedResistanceLevelRange,
+        mbbs_cIdxCOUNT
+    } mbbs_cIdx;
+    
+    // UUIDs for our service and characteristics
+    static const uint8_t  service_base_uuid[ 16];
+    static const uint8_t  char_base_uuid[ 16];
+    static const uint16_t serviceUUID;
+    static const uint16_t charUUID[ mbbs_cIdxCOUNT];
+    
+    // Data for each characteristic when they are held by Soft Device.
+    MicroBitBLEChar      chars[ mbbs_cIdxCOUNT];
+
+    public:
+    
+    int              characteristicCount()          { return mbbs_cIdxCOUNT; };
+    MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };
 
 };
 
@@ -296,17 +322,37 @@ private:
     void sendTrainingStatusIdle(void);
     void sendTrainingStatusManualMode(void);
     void sendFitnessMachineStatusReset(void);
-    void sendFitnessMachineStatusTargetResistanceLevelChanged(uint8_t targetResistanceLevel10);
+    void sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10);
     void sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void);
 
     // 
-    void doFitnessMachineControlPoint(const GattWriteCallbackParams *params);
+    void doFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
+protected:
+    // ble wrapper.
+    bool getGapStateConnected();
+    void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length);
+    void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length);
+    void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length);
+    void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 };
 
 //================================================================
 #endif // MICROBIT_CODAL
 //================================================================
+
+class BLEFitnessMachineServiceImpl : public BLEFitnessMachineServiceDal
+{
+  
+public:
+
+    /**
+      * Constructor.
+      * @param _ble The instance of a BLE device that we're running on.
+      */
+    BLEFitnessMachineServiceImpl(BLEDevice &_ble);
+
+};
 
 class BLEFitnessMachineService
 {
@@ -344,7 +390,7 @@ class BLEFitnessMachineService
 private:
 
     // instance
-    BLEFitnessMachineServiceDal* pBLEFitnessMachineServiceDal;
+    BLEFitnessMachineServiceImpl* pBLEFitnessMachineServiceImpl;
 
 };
 
