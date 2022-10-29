@@ -38,7 +38,7 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
 
 void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
 {
-    //
+    // pass
 }
 
 bool BLEFitnessMachineServiceDal::getGapStateConnected()
@@ -67,23 +67,6 @@ void BLEFitnessMachineServiceDal::writeCharFitnessMachineControlPoint(const uint
     //ble.gattServer().write(this->fitnessMachineControlPointCharacteristicHandle, data, length);
 }
 
-void BLEFitnessMachineServiceDal::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
-{
-    //
-}
-
-uint8_t BLEFitnessMachineServiceDal::getTargetResistanceLevel10()
-{
-    //
-    return VAL_MINIMUM_RESISTANCE_LEVEL;
-}
-
-int16_t BLEFitnessMachineServiceDal::getGrade100()
-{
-    //
-    return 0;
-}
-
 //================================================================
 #else // MICROBIT_CODAL
 //================================================================
@@ -93,12 +76,6 @@ int16_t BLEFitnessMachineServiceDal::getGrade100()
 BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
         ble(_ble)
 {
-    this->lastTargetResistanceLevel10=0;
-    this->lastWindSpeed1000=0;
-    this->lastGrade100=0;
-    this->lastCrr10000=0;
-    this->lastCw100=0;
-    this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize=0;
     // Caractieristic
     GattCharacteristic  indoorBikeDataCharacteristic(
         UUID(0x2AD2)
@@ -201,13 +178,13 @@ void BLEFitnessMachineServiceDal::onDataWritten(const GattWriteCallbackParams *p
 {
     if (params->handle == fitnessMachineControlPointCharacteristicHandle && params->len >= 1)
     {
-        this->doFitnessMachineControlPoint((const uint8_t *)params->data, params->len);
+        this->onFitnessMachineControlPoint((const uint8_t *)params->data, params->len);
     }
 }
 
 void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
 {
-    //
+    // pass
 }
 
 bool BLEFitnessMachineServiceDal::getGapStateConnected()
@@ -235,55 +212,22 @@ void BLEFitnessMachineServiceDal::writeCharFitnessMachineControlPoint(const uint
     ble.gattServer().write(this->fitnessMachineControlPointCharacteristicHandle, data, length);
 }
 
-void BLEFitnessMachineServiceDal::sendTrainingStatusIdle(void)
+//================================================================
+#endif // MICROBIT_CODAL
+//================================================================
+
+BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl(BLEDevice &_ble) :
+    BLEFitnessMachineServiceDal(_ble)
 {
-    if (this->getGapStateConnected())
-    {
-        static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_01_IDEL};
-        this->notifyCharFitnessTrainingStatus((const uint8_t *)&buff, sizeof(buff));
-    }
+    this->lastTargetResistanceLevel10=0;
+    this->lastWindSpeed1000=0;
+    this->lastGrade100=0;
+    this->lastCrr10000=0;
+    this->lastCw100=0;
+    this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize=0;
 }
 
-void BLEFitnessMachineServiceDal::sendTrainingStatusManualMode(void)
-{
-    if (this->getGapStateConnected())
-    {
-        static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_0D_MANUAL_MODE};
-        this->notifyCharFitnessTrainingStatus((const uint8_t *)&buff, sizeof(buff));
-    }
-}
-    
-void BLEFitnessMachineServiceDal::sendFitnessMachineStatusReset(void)
-{
-    if (this->getGapStateConnected())
-    {
-        static const uint8_t buff[]={FTMP_OP_CODE_FITNESS_MACHINE_STATUS_01_RESET};
-        this->notifyCharFitnessMachineStatus((const uint8_t *)&buff, sizeof(buff));
-    }
-}
-
-void BLEFitnessMachineServiceDal::sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10)
-{
-    if (this->getGapStateConnected())
-    {
-        uint8_t buff[2];
-        buff[0]=FTMP_OP_CODE_FITNESS_MACHINE_STATUS_07_TARGET_RESISTANCE_LEVEL_CHANGED;
-        buff[1]=targetResistanceLevel10;
-        this->notifyCharFitnessMachineStatus((const uint8_t *)&buff, sizeof(buff));
-    }
-}
-
-void BLEFitnessMachineServiceDal::sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void)
-{
-    if (this->getGapStateConnected() && this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize>0)
-    {
-        this->notifyCharFitnessMachineStatus(
-            (const uint8_t *)&this->nextFitnessMachineStatusIndoorBikeSimulationParametersChanged,
-            this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize);
-    }
-}
-
-void BLEFitnessMachineServiceDal::doFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
+void BLEFitnessMachineServiceImpl::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
 {
     uint8_t responseBuffer[3];
     responseBuffer[0] = FTMP_OP_CODE_CPPR_80_RESPONSE_CODE;
@@ -443,44 +387,78 @@ void BLEFitnessMachineServiceDal::doFitnessMachineControlPoint(const uint8_t *da
     
 }
 
-void BLEFitnessMachineServiceDal::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
+void BLEFitnessMachineServiceImpl::sendTrainingStatusIdle(void)
 {
     if (this->getGapStateConnected())
     {
-        struct_pack(indoorBikeDataCharacteristicBuffer, "<HHHhh",
+        static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_01_IDEL};
+        this->notifyCharFitnessTrainingStatus((const uint8_t *)&buff, sizeof(buff));
+    }
+}
+
+void BLEFitnessMachineServiceImpl::sendTrainingStatusManualMode(void)
+{
+    if (this->getGapStateConnected())
+    {
+        static const uint8_t buff[]={FTMP_FLAGS_TRAINING_STATUS_FIELD_00_STATUS_ONLY, FTMP_VAL_TRAINING_STATUS_0D_MANUAL_MODE};
+        this->notifyCharFitnessTrainingStatus((const uint8_t *)&buff, sizeof(buff));
+    }
+}
+    
+void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusReset(void)
+{
+    if (this->getGapStateConnected())
+    {
+        static const uint8_t buff[]={FTMP_OP_CODE_FITNESS_MACHINE_STATUS_01_RESET};
+        this->notifyCharFitnessMachineStatus((const uint8_t *)&buff, sizeof(buff));
+    }
+}
+
+void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10)
+{
+    if (this->getGapStateConnected())
+    {
+        uint8_t buff[2];
+        buff[0]=FTMP_OP_CODE_FITNESS_MACHINE_STATUS_07_TARGET_RESISTANCE_LEVEL_CHANGED;
+        buff[1]=targetResistanceLevel10;
+        this->notifyCharFitnessMachineStatus((const uint8_t *)&buff, sizeof(buff));
+    }
+}
+
+void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void)
+{
+    if (this->getGapStateConnected() && this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize>0)
+    {
+        this->notifyCharFitnessMachineStatus(
+            (const uint8_t *)&this->nextFitnessMachineStatusIndoorBikeSimulationParametersChanged,
+            this->nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize);
+    }
+}
+
+void BLEFitnessMachineServiceImpl::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
+{
+    if (this->getGapStateConnected())
+    {
+        uint8_t buff[2+2+2+2+2];
+        struct_pack(buff, "<HHHhh",
             FTMP_FLAGS_INDOOR_BIKE_DATA_CHAR,
             speed100,
             cadence2,
             resistanceLevel,
             power
         );
-        this->notifyCharIndoorBikeData((uint8_t *)&indoorBikeDataCharacteristicBuffer, sizeof(indoorBikeDataCharacteristicBuffer));
+        this->notifyCharIndoorBikeData((const uint8_t *)&buff, sizeof(buff));
     }
 }
 
-uint8_t BLEFitnessMachineServiceDal::getTargetResistanceLevel10()
+uint8_t BLEFitnessMachineServiceImpl::getTargetResistanceLevel10()
 {
     return this->lastTargetResistanceLevel10;
 }
 
-int16_t BLEFitnessMachineServiceDal::getGrade100()
+int16_t BLEFitnessMachineServiceImpl::getGrade100()
 {
     return this->lastGrade100;
-}
-
-//================================================================
-#endif // MICROBIT_CODAL
-//================================================================
-
-BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl(BLEDevice &_ble) :
-    BLEFitnessMachineServiceDal(_ble)
-{
-    //
-}
-
-void BLEFitnessMachineServiceImpl::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
-{
-    //
 }
 
 BLEFitnessMachineService::BLEFitnessMachineService()
