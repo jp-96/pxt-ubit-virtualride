@@ -241,6 +241,17 @@ class BLEFitnessMachineServiceDal : public MicroBitBLEService
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };
     MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };
 
+protected:
+    // Callback.
+    virtual void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
+
+protected:
+    // ble wrapper.
+    bool getGapStateConnected();
+    void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length);
+    void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length);
+    void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length);
+    void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 };
 
 //================================================================
@@ -307,6 +318,8 @@ private:
     GattAttribute::Handle_t fitnessTrainingStatusCharacteristicHandle;
     GattAttribute::Handle_t fitnessSupportedResistanceLevelRangeCharacteristicHandle;
 
+private:
+
     // var
     uint8_t lastTargetResistanceLevel10;
     int16_t lastWindSpeed1000;
@@ -327,6 +340,12 @@ private:
 
     // 
     void doFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
+
+private:
+    /**
+      * Callback. Invoked when any of our attributes are written via BLE.
+      */
+    virtual void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
 protected:
     // ble wrapper.
@@ -351,6 +370,13 @@ public:
       * @param _ble The instance of a BLE device that we're running on.
       */
     BLEFitnessMachineServiceImpl(BLEDevice &_ble);
+
+private:
+
+    /**
+      * Callback. Invoked when any of our attributes are written via BLE.
+      */
+    void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
 };
 

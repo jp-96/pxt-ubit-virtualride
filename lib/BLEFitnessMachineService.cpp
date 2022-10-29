@@ -36,6 +36,37 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     //
 }
 
+void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
+{
+    //
+}
+
+bool BLEFitnessMachineServiceDal::getGapStateConnected()
+{
+    //return ble.getGapState().connected;
+    return false;
+}
+
+void BLEFitnessMachineServiceDal::notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length)
+{
+    //ble.gattServer().notify(this->fitnessTrainingStatusCharacteristicHandle, data, length);
+}
+
+void BLEFitnessMachineServiceDal::notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length)
+{
+    //ble.gattServer().notify(this->fitnessMachineStatusCharacteristicHandle, data, length);
+}
+
+void BLEFitnessMachineServiceDal::notifyCharIndoorBikeData(const uint8_t *data, uint16_t length)
+{
+    //ble.gattServer().notify(this->indoorBikeDataCharacteristicHandle, data, length);
+}
+
+void BLEFitnessMachineServiceDal::writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
+{
+    //ble.gattServer().write(this->fitnessMachineControlPointCharacteristicHandle, data, length);
+}
+
 void BLEFitnessMachineServiceDal::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
 {
     //
@@ -172,6 +203,11 @@ void BLEFitnessMachineServiceDal::onDataWritten(const GattWriteCallbackParams *p
     {
         this->doFitnessMachineControlPoint((const uint8_t *)params->data, params->len);
     }
+}
+
+void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
+{
+    //
 }
 
 bool BLEFitnessMachineServiceDal::getGapStateConnected()
@@ -438,6 +474,11 @@ int16_t BLEFitnessMachineServiceDal::getGrade100()
 
 BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl(BLEDevice &_ble) :
     BLEFitnessMachineServiceDal(_ble)
+{
+    //
+}
+
+void BLEFitnessMachineServiceImpl::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
 {
     //
 }
