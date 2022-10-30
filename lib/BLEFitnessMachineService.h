@@ -195,6 +195,14 @@ private:
     // Bluetooth stack we're running on.
     BLEDevice &ble;
     
+    // Characteristic buffer
+    uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
+    uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
+    uint8_t fitnessMachineFeatureCharacteristicBuffer[4+4];
+    uint8_t fitnessMachineStatusCharacteristicBuffer[2];
+    uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
+    uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
+    
     // Index for each charactersitic in arrays of handles and UUIDs
     typedef enum mbbs_cIdx
     {
@@ -220,6 +228,8 @@ public:
     
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };
     MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };
+    
+    void onDataWritten(const microbit_ble_evt_write_t *params);
 
 private:
     // Callback.
@@ -255,7 +265,7 @@ private:
 
     // Bluetooth stack we're running on.
     BLEDevice &ble;
-        
+
     // Characteristic buffer
     uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
     uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
