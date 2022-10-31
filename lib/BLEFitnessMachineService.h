@@ -172,7 +172,7 @@ static const uint16_t MICROBIT_CUSTOM_ID_BASE = 32768;
 // # UINT8 Manual Mode (Quick Start)
 #define FTMP_VAL_TRAINING_STATUS_0D_MANUAL_MODE 0x0D
 
-class BLEFitnessMachineServiceImpl
+class BLEFitnessMachineServiceBase
 {
   
 public:
@@ -180,7 +180,7 @@ public:
     /**
       * Constructor.
       */
-    BLEFitnessMachineServiceImpl();
+    BLEFitnessMachineServiceBase();
 
 private:
 
@@ -226,6 +226,12 @@ public:
     int16_t getGrade100();
 
 protected:
+    /**
+      * Callback. Invoked when any of our attributes are written via BLE.
+      */
+    void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
+
+protected:
     // Characteristic buffer
     uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
     uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
@@ -234,15 +240,8 @@ protected:
     uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
     uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
 
-protected:
-    /**
-      * Callback. Invoked when any of our attributes are written via BLE.
-      */
-    void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
-
 private:
-
-    // ble wrapper.
+    // BLE wrapper methods.
     virtual bool getGapStateConnected() = 0;
     virtual void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length) = 0;
     virtual void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length) = 0;
@@ -258,7 +257,7 @@ private:
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
 
-class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceImpl, public MicroBitBLEService
+class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceBase, public MicroBitBLEService
 {
   
 public:
@@ -319,7 +318,7 @@ private:
 
 #include "ble/BLE.h"
 
-class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceImpl
+class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceBase
 {
 
 public:
@@ -399,7 +398,7 @@ class BLEFitnessMachineService
 private:
 
     // instance
-    BLEFitnessMachineServiceImpl* pBLEFitnessMachineServiceImpl;
+    BLEFitnessMachineServiceBase* pService;
 
 };
 

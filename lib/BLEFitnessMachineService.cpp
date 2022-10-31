@@ -264,7 +264,7 @@ void BLEFitnessMachineServiceDal::writeCharFitnessMachineControlPoint(const uint
 #endif // MICROBIT_CODAL
 //================================================================
 
-BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl()
+BLEFitnessMachineServiceBase::BLEFitnessMachineServiceBase()
 {
     // Initialise
     lastTargetResistanceLevel10=0;
@@ -302,7 +302,7 @@ BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl()
 
 }
 
-void BLEFitnessMachineServiceImpl::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
+void BLEFitnessMachineServiceBase::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
 {
     uint8_t responseBuffer[3];
     responseBuffer[0] = FTMP_OP_CODE_CPPR_80_RESPONSE_CODE;
@@ -462,7 +462,7 @@ void BLEFitnessMachineServiceImpl::onFitnessMachineControlPoint(const uint8_t *d
     
 }
 
-void BLEFitnessMachineServiceImpl::sendTrainingStatusIdle(void)
+void BLEFitnessMachineServiceBase::sendTrainingStatusIdle(void)
 {
     if (getGapStateConnected())
     {
@@ -471,7 +471,7 @@ void BLEFitnessMachineServiceImpl::sendTrainingStatusIdle(void)
     }
 }
 
-void BLEFitnessMachineServiceImpl::sendTrainingStatusManualMode(void)
+void BLEFitnessMachineServiceBase::sendTrainingStatusManualMode(void)
 {
     if (getGapStateConnected())
     {
@@ -480,7 +480,7 @@ void BLEFitnessMachineServiceImpl::sendTrainingStatusManualMode(void)
     }
 }
     
-void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusReset(void)
+void BLEFitnessMachineServiceBase::sendFitnessMachineStatusReset(void)
 {
     if (getGapStateConnected())
     {
@@ -489,7 +489,7 @@ void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusReset(void)
     }
 }
 
-void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10)
+void BLEFitnessMachineServiceBase::sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10)
 {
     if (getGapStateConnected())
     {
@@ -500,7 +500,7 @@ void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusTargetResistanceLevel
     }
 }
 
-void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void)
+void BLEFitnessMachineServiceBase::sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void)
 {
     if (getGapStateConnected() && nextFitnessMachineStatusIndoorBikeSimulationParametersChangedSize>0)
     {
@@ -510,7 +510,7 @@ void BLEFitnessMachineServiceImpl::sendFitnessMachineStatusIndoorBikeSimulationP
     }
 }
 
-void BLEFitnessMachineServiceImpl::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
+void BLEFitnessMachineServiceBase::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
 {
     if (getGapStateConnected())
     {
@@ -526,32 +526,32 @@ void BLEFitnessMachineServiceImpl::notifyIndoorBikeData(uint32_t speed100, uint3
     }
 }
 
-uint8_t BLEFitnessMachineServiceImpl::getTargetResistanceLevel10()
+uint8_t BLEFitnessMachineServiceBase::getTargetResistanceLevel10()
 {
     return lastTargetResistanceLevel10;
 }
 
-int16_t BLEFitnessMachineServiceImpl::getGrade100()
+int16_t BLEFitnessMachineServiceBase::getGrade100()
 {
     return lastGrade100;
 }
 
 BLEFitnessMachineService::BLEFitnessMachineService()
 {
-    pBLEFitnessMachineServiceImpl = new BLEFitnessMachineServiceDal(*uBit.ble);
+    pService = new BLEFitnessMachineServiceDal(*uBit.ble);
 }
 
 void BLEFitnessMachineService::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
 {
-    pBLEFitnessMachineServiceImpl->notifyIndoorBikeData( speed100,  cadence2,  resistanceLevel,  power);
+    pService->notifyIndoorBikeData( speed100,  cadence2,  resistanceLevel,  power);
 }
 
 uint8_t BLEFitnessMachineService::getTargetResistanceLevel10()
 {
-    return pBLEFitnessMachineServiceImpl->getTargetResistanceLevel10();
+    return pService->getTargetResistanceLevel10();
 }
 
 int16_t BLEFitnessMachineService::getGrade100()
 {
-    return pBLEFitnessMachineServiceImpl->getGrade100();
+    return pService->getGrade100();
 }
