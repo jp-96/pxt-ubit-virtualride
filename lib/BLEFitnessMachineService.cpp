@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2021 jp-96
+Copyright (c) 2021-2022 jp-96
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -84,20 +84,20 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
                          microbit_propREAD);
     
     // // FTMS - Service Advertising Data
-    // const uint8_t FTMS_UUID[sizeof(UUID::ShortUUIDBytes_t)] = {0x26, 0x18};
+    // const uint8_t FTMS_UUID[2] = {0x26, 0x18};
     // ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
     // uint8_t serviceData[2+1+2];
     // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
     // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
 
-    // // Default values.
-    // ble.gattServer().write(fitnessMachineFeatureCharacteristicHandle
-    //     ,(uint8_t *)&fitnessMachineFeatureCharacteristicBuffer, sizeof(fitnessMachineFeatureCharacteristicBuffer));
-    // ble.gattServer().write(fitnessTrainingStatusCharacteristicHandle
-    //     ,(uint8_t *)&fitnessTrainingStatusCharacteristicBuffer, sizeof(fitnessTrainingStatusCharacteristicBuffer));
-    // ble.gattServer().write(fitnessSupportedResistanceLevelRangeCharacteristicHandle
-    //     ,(uint8_t *)&fitnessSupportedResistanceLevelRangeCharacteristicBuffer, sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer));
-
+    // Default values.
+    writeChrValue(mbbs_cIdxFitnessMachineFeature
+         ,(const uint8_t *)&fitnessMachineFeatureCharacteristicBuffer, sizeof(fitnessMachineFeatureCharacteristicBuffer));
+    writeChrValue(mbbs_cIdxFitnessTrainingStatus
+         ,(const uint8_t *)&fitnessTrainingStatusCharacteristicBuffer, sizeof(fitnessTrainingStatusCharacteristicBuffer));
+    writeChrValue(mbbs_cIdxFitnessSupportedResistanceLevelRange
+         ,(const uint8_t *)&fitnessSupportedResistanceLevelRangeCharacteristicBuffer, sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer));
+    
 }
 
 void BLEFitnessMachineServiceDal::onDataWritten( const microbit_ble_evt_write_t *params)
@@ -199,12 +199,12 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     );
     ble.addService(service);
 
-    // FTMS - Service Advertising Data
-    const uint8_t FTMS_UUID[sizeof(UUID::ShortUUIDBytes_t)] = {0x26, 0x18};
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
-    uint8_t serviceData[2+1+2];
-    struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
+    // // FTMS - Service Advertising Data
+    // const uint8_t FTMS_UUID[2] = {0x26, 0x18};
+    // ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
+    // uint8_t serviceData[2+1+2];
+    // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
+    // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
 
     // Characteristic Handle
     indoorBikeDataCharacteristicHandle = indoorBikeDataCharacteristic.getValueHandle();
