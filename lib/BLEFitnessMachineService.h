@@ -225,7 +225,7 @@ public:
      */
     int16_t getGrade100();
 
-private:
+protected:
     // Characteristic buffer
     uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
     uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
@@ -241,6 +241,7 @@ protected:
     void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
 private:
+
     // ble wrapper.
     virtual bool getGapStateConnected() = 0;
     virtual void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length) = 0;
@@ -302,6 +303,7 @@ public:
     void onDataWritten(const microbit_ble_evt_write_t *params);
 
 private:
+
     // ble wrapper.
     bool getGapStateConnected();
     void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length);
