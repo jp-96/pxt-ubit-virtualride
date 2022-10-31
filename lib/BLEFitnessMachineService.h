@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2021 jp-96
+Copyright (c) 2021-2022 jp-96
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -172,114 +172,17 @@ static const uint16_t MICROBIT_CUSTOM_ID_BASE = 32768;
 // # UINT8 Manual Mode (Quick Start)
 #define FTMP_VAL_TRAINING_STATUS_0D_MANUAL_MODE 0x0D
 
-//================================================================
-#if MICROBIT_CODAL
-//================================================================
-
-#include "MicroBitBLEManager.h"
-#include "MicroBitBLEService.h"
-
-class BLEFitnessMachineServiceDal //: public MicroBitBLEService
+class BLEFitnessMachineServiceBase
 {
-    public:
-
-    /**
-      * Constructor.
-      * @param _ble The instance of a BLE device that we're running on.
-      */
-    BLEFitnessMachineServiceDal(BLEDevice &_ble);
-
-    /**
-     * The Indoor Bike Data characteristic is used to send training-related data to the Client from an indoor bike (Server). 
-     * @param speed100 Instantaneous Speed (uint16), Kilometer per hour with a resolution of 0.01, eg: 42.20km/h -> 4220. 
-     * @param cadence2 Instantaneous Cadence (uint16), 1/minute with a resolution of 0.5, eg: 60.5rpm -> 121.
-     * @param resistanceLevel Resistance Level (sint16), Unitless with a resolution of 1
-     * @param power Instantaneous Power (sint16), Watts with a resolution of 1, eg:200watt -> 200
-     */
-    void notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power);
-
-    /**
-     * Get Target Resistance Level through the `Set Target Resistance Level Procedure`.
-     * Target Resistance Level, UINT8, Unitless with a resolution of 0.1.
-     */
-    uint8_t getTargetResistanceLevel10();
-
-    /**
-     * Get Grade through the `Set Indoor Bike Simulation Parameters Procedure`.
-     * Grade, SINT16, Percentage with a resolution of 0.01.
-     */
-    int16_t getGrade100();
-
-    private:
-
-    // Bluetooth stack we're running on.
-    BLEDevice &ble;
-
-};
-
-//================================================================
-#else // MICROBIT_CODAL
-//================================================================
-
-#include "ble/BLE.h"
-
-class BLEFitnessMachineServiceDal
-{
+  
 public:
 
     /**
       * Constructor.
-      * @param _ble The instance of a BLE device that we're running on.
       */
-    BLEFitnessMachineServiceDal(BLEDevice &_ble);
-
-    /**
-     * The Indoor Bike Data characteristic is used to send training-related data to the Client from an indoor bike (Server). 
-     * @param speed100 Instantaneous Speed (uint16), Kilometer per hour with a resolution of 0.01, eg: 42.20km/h -> 4220. 
-     * @param cadence2 Instantaneous Cadence (uint16), 1/minute with a resolution of 0.5, eg: 60.5rpm -> 121.
-     * @param resistanceLevel Resistance Level (sint16), Unitless with a resolution of 1
-     * @param power Instantaneous Power (sint16), Watts with a resolution of 1, eg:200watt -> 200
-     */
-    void notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power);
-
-    /**
-     * Get Target Resistance Level through the `Set Target Resistance Level Procedure`.
-     * Target Resistance Level, UINT8, Unitless with a resolution of 0.1.
-     */
-    uint8_t getTargetResistanceLevel10();
-
-    /**
-     * Get Grade through the `Set Indoor Bike Simulation Parameters Procedure`.
-     * Grade, SINT16, Percentage with a resolution of 0.01.
-     */
-    int16_t getGrade100();
+    BLEFitnessMachineServiceBase();
 
 private:
-
-    // Bluetooth stack we're running on.
-    BLEDevice &ble;
-    
-private:
-    /**
-      * Callback. Invoked when any of our attributes are written via BLE.
-      */
-    void onDataWritten(const GattWriteCallbackParams *params);
-    
-    // Characteristic buffer
-    uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
-    uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
-    uint8_t fitnessMachineFeatureCharacteristicBuffer[4+4];
-    uint8_t fitnessMachineStatusCharacteristicBuffer[2];
-    uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
-    uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
-    
-    // Handles to access each characteristic when they are held by Soft Device.
-    GattAttribute::Handle_t indoorBikeDataCharacteristicHandle;
-    GattAttribute::Handle_t fitnessMachineControlPointCharacteristicHandle;
-    GattAttribute::Handle_t fitnessMachineFeatureCharacteristicHandle;
-    GattAttribute::Handle_t fitnessMachineStatusCharacteristicHandle;
-    GattAttribute::Handle_t fitnessTrainingStatusCharacteristicHandle;
-    GattAttribute::Handle_t fitnessSupportedResistanceLevelRangeCharacteristicHandle;
 
     // var
     uint8_t lastTargetResistanceLevel10;
@@ -296,11 +199,162 @@ private:
     void sendTrainingStatusIdle(void);
     void sendTrainingStatusManualMode(void);
     void sendFitnessMachineStatusReset(void);
-    void sendFitnessMachineStatusTargetResistanceLevelChanged(uint8_t targetResistanceLevel10);
+    void sendFitnessMachineStatusTargetResistanceLevelChanged(const uint8_t targetResistanceLevel10);
     void sendFitnessMachineStatusIndoorBikeSimulationParametersChanged(void);
 
-    // 
-    void doFitnessMachineControlPoint(const GattWriteCallbackParams *params);
+public:
+
+    /**
+     * The Indoor Bike Data characteristic is used to send training-related data to the Client from an indoor bike (Server). 
+     * @param speed100 Instantaneous Speed (uint16), Kilometer per hour with a resolution of 0.01, eg: 42.20km/h -> 4220. 
+     * @param cadence2 Instantaneous Cadence (uint16), 1/minute with a resolution of 0.5, eg: 60.5rpm -> 121.
+     * @param resistanceLevel Resistance Level (sint16), Unitless with a resolution of 1
+     * @param power Instantaneous Power (sint16), Watts with a resolution of 1, eg:200watt -> 200
+     */
+    void notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power);
+
+    /**
+     * Get Target Resistance Level through the `Set Target Resistance Level Procedure`.
+     * Target Resistance Level, UINT8, Unitless with a resolution of 0.1.
+     */
+    uint8_t getTargetResistanceLevel10();
+
+    /**
+     * Get Grade through the `Set Indoor Bike Simulation Parameters Procedure`.
+     * Grade, SINT16, Percentage with a resolution of 0.01.
+     */
+    int16_t getGrade100();
+
+protected:
+    /**
+      * Callback. Invoked when any of our attributes are written via BLE.
+      */
+    void onFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
+
+protected:
+    // Characteristic buffer
+    uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
+    uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
+    uint8_t fitnessMachineFeatureCharacteristicBuffer[4+4];
+    uint8_t fitnessMachineStatusCharacteristicBuffer[2];
+    uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
+    uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
+
+private:
+    // BLE wrapper methods.
+    virtual bool getGapStateConnected() = 0;
+    virtual void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length) = 0;
+    virtual void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length) = 0;
+    virtual void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length) = 0;
+    virtual void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length) = 0;
+
+};
+
+//================================================================
+#if MICROBIT_CODAL
+//================================================================
+
+#include "MicroBitBLEManager.h"
+#include "MicroBitBLEService.h"
+
+class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceBase, public MicroBitBLEService
+{
+  
+public:
+
+    /**
+      * Constructor.
+      * @param _ble The instance of a BLE device that we're running on.
+      */
+    BLEFitnessMachineServiceDal(BLEDevice &_ble);
+
+private:
+
+    // Bluetooth stack we're running on.
+    BLEDevice &ble;
+    
+    // Index for each charactersitic in arrays of handles and UUIDs
+    typedef enum mbbs_cIdx
+    {
+        mbbs_cIdxIndoorBikeData,
+        mbbs_cIdxFitnessMachineControlPoint,
+        mbbs_cIdxFitnessMachineFeature,
+        mbbs_cIdxFitnessMachineStatus,
+        mbbs_cIdxFitnessTrainingStatus,
+        mbbs_cIdxFitnessSupportedResistanceLevelRange,
+        mbbs_cIdxCOUNT
+    } mbbs_cIdx;
+        
+    // UUIDs for our service and characteristics
+    static const uint8_t  service_base_uuid[ 16];
+    static const uint8_t  char_base_uuid[ 16];
+    static const uint16_t serviceUUID;
+    static const uint16_t charUUID[ mbbs_cIdxCOUNT];
+    
+    // Data for each characteristic when they are held by Soft Device.
+    MicroBitBLEChar      chars[ mbbs_cIdxCOUNT];
+
+public:
+    
+    int              characteristicCount()          { return mbbs_cIdxCOUNT; };
+    MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };
+    
+    void onDataWritten(const microbit_ble_evt_write_t *params);
+
+private:
+
+    // ble wrapper.
+    bool getGapStateConnected();
+    void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length);
+    void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length);
+    void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length);
+    void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
+
+};
+
+//================================================================
+#else // MICROBIT_CODAL
+//================================================================
+
+#include "ble/BLE.h"
+
+class BLEFitnessMachineServiceDal : public BLEFitnessMachineServiceBase
+{
+
+public:
+
+    /**
+      * Constructor.
+      * @param _ble The instance of a BLE device that we're running on.
+      */
+    BLEFitnessMachineServiceDal(BLEDevice &_ble);
+
+private:
+
+    // Bluetooth stack we're running on.
+    BLEDevice &ble;
+    
+    // Handles to access each characteristic when they are held by Soft Device.
+    GattAttribute::Handle_t indoorBikeDataCharacteristicHandle;
+    GattAttribute::Handle_t fitnessMachineControlPointCharacteristicHandle;
+    GattAttribute::Handle_t fitnessMachineFeatureCharacteristicHandle;
+    GattAttribute::Handle_t fitnessMachineStatusCharacteristicHandle;
+    GattAttribute::Handle_t fitnessTrainingStatusCharacteristicHandle;
+    GattAttribute::Handle_t fitnessSupportedResistanceLevelRangeCharacteristicHandle;
+
+    /**
+      * Callback. Invoked when any of our attributes are written via BLE.
+      */
+    void onDataWritten(const GattWriteCallbackParams *params);
+
+private:
+
+    // ble wrapper.
+    bool getGapStateConnected();
+    void notifyCharFitnessTrainingStatus(const uint8_t *data, uint16_t length);
+    void notifyCharFitnessMachineStatus(const uint8_t *data, uint16_t length);
+    void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length);
+    void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
 };
 
@@ -344,7 +398,7 @@ class BLEFitnessMachineService
 private:
 
     // instance
-    BLEFitnessMachineServiceDal* pBLEFitnessMachineServiceDal;
+    BLEFitnessMachineServiceBase* pService;
 
 };
 

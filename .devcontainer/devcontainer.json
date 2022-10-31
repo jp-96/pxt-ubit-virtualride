@@ -25,7 +25,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pxt target microbit && pxt install && rm package-lock.json",
+	// "postCreateCommand": "pxt target microbit && pxt install && rm package-lock.json",
 
 	// Comment out this line to run as root instead.
 	"remoteUser": "vscode"
