@@ -30,10 +30,67 @@ SOFTWARE.
 #if MICROBIT_CODAL
 //================================================================
 
+// base uuid : x00000000-0000-1000-8000-00805F9B34FB
+const uint8_t  BLEFitnessMachineServiceDal::service_base_uuid[ 16] =
+{ 0x00,0x00,0x00,0x00,0x00,0x00,0x10,0x00,0x80,0x00,0x00,0x80,0x5f,0x9b,0x34,0xfb };
+
+const uint8_t  BLEFitnessMachineServiceDal::char_base_uuid[ 16] =
+{ 0x00,0x00,0x00,0x00,0x00,0x00,0x10,0x00,0x80,0x00,0x00,0x80,0x5f,0x9b,0x34,0xfb };
+
+// UUID(0x1826) FTMS
+const uint16_t BLEFitnessMachineServiceDal::serviceUUID               = 0x1826;
+// UUID(0x2AD2) mbbs_cIdxIndoorBikeData,
+// UUID(0x2AD9) mbbs_cIdxFitnessMachineControlPoint,
+// UUID(0x2ACC) mbbs_cIdxFitnessMachineFeature,
+// UUID(0x2ADA) mbbs_cIdxFitnessMachineStatus,
+// UUID(0x2AD3) mbbs_cIdxFitnessTrainingStatus,
+// UUID(0x2AD6) mbbs_cIdxFitnessSupportedResistanceLevelRange,
+const uint16_t BLEFitnessMachineServiceDal::charUUID[ mbbs_cIdxCOUNT] = 
+{ 0x2AD2,0x2AD9,0x2ACC,0x2ADA,0x2AD3,0x2AD6};
+
 BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
         ble(_ble), MicroBitBLEService()
 {
-    //
+    
+    // Initialise our characteristic values.
+    memset(&indoorBikeDataCharacteristicBuffer, 0, sizeof(indoorBikeDataCharacteristicBuffer));
+    memset(&fitnessMachineControlPointCharacteristicBuffer, 0, sizeof(fitnessMachineControlPointCharacteristicBuffer));
+    memset(&fitnessMachineFeatureCharacteristicBuffer, 0, sizeof(fitnessMachineFeatureCharacteristicBuffer));
+    memset(&fitnessMachineStatusCharacteristicBuffer, 0, sizeof(fitnessMachineStatusCharacteristicBuffer));
+    memset(&fitnessTrainingStatusCharacteristicBuffer, 0, sizeof(fitnessTrainingStatusCharacteristicBuffer));
+    memset(&fitnessSupportedResistanceLevelRangeCharacteristicBuffer, 0, sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer));
+    
+    // Register the base UUID and create the service.
+    RegisterBaseUUID( service_base_uuid);
+    CreateService( serviceUUID);
+
+    // Register the base UUID and create the characteristics.
+    RegisterBaseUUID( char_base_uuid);
+    CreateCharacteristic( mbbs_cIdxIndoorBikeData, charUUID[ mbbs_cIdxIndoorBikeData],
+                         (uint8_t *)&indoorBikeDataCharacteristicBuffer,
+                         sizeof(indoorBikeDataCharacteristicBuffer), sizeof(indoorBikeDataCharacteristicBuffer),
+                         microbit_propNOTIFY);
+    CreateCharacteristic( mbbs_cIdxFitnessMachineControlPoint, charUUID[ mbbs_cIdxFitnessMachineControlPoint],
+                         (uint8_t *)&fitnessMachineControlPointCharacteristicBuffer,
+                         sizeof(fitnessMachineControlPointCharacteristicBuffer), sizeof(fitnessMachineControlPointCharacteristicBuffer),
+                         microbit_propWRITE | microbit_propINDICATE);
+    CreateCharacteristic( mbbs_cIdxFitnessMachineFeature, charUUID[ mbbs_cIdxFitnessMachineFeature],
+                         (uint8_t *)&fitnessMachineFeatureCharacteristicBuffer,
+                         sizeof(fitnessMachineFeatureCharacteristicBuffer), sizeof(fitnessMachineFeatureCharacteristicBuffer),
+                         microbit_propREAD);
+    CreateCharacteristic( mbbs_cIdxFitnessMachineStatus, charUUID[ mbbs_cIdxFitnessMachineStatus],
+                         (uint8_t *)&fitnessMachineStatusCharacteristicBuffer,
+                         sizeof(fitnessMachineStatusCharacteristicBuffer), sizeof(fitnessMachineStatusCharacteristicBuffer),
+                         microbit_propNOTIFY);
+    CreateCharacteristic( mbbs_cIdxFitnessTrainingStatus, charUUID[ mbbs_cIdxFitnessTrainingStatus],
+                         (uint8_t *)&fitnessTrainingStatusCharacteristicBuffer,
+                         sizeof(fitnessTrainingStatusCharacteristicBuffer), sizeof(fitnessTrainingStatusCharacteristicBuffer),
+                         microbit_propREAD | microbit_propNOTIFY);
+    CreateCharacteristic( mbbs_cIdxFitnessSupportedResistanceLevelRange, charUUID[ mbbs_cIdxFitnessSupportedResistanceLevelRange],
+                         (uint8_t *)&fitnessSupportedResistanceLevelRangeCharacteristicBuffer,
+                         sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer), sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer),
+                         microbit_propREAD);
+    
 }
 
 void BLEFitnessMachineServiceDal::onDataWritten( const microbit_ble_evt_write_t *params)

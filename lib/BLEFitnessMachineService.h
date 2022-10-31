@@ -195,14 +195,6 @@ private:
     // Bluetooth stack we're running on.
     BLEDevice &ble;
     
-    // Characteristic buffer
-    uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
-    uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
-    uint8_t fitnessMachineFeatureCharacteristicBuffer[4+4];
-    uint8_t fitnessMachineStatusCharacteristicBuffer[2];
-    uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
-    uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
-    
     // Index for each charactersitic in arrays of handles and UUIDs
     typedef enum mbbs_cIdx
     {
@@ -214,6 +206,14 @@ private:
         mbbs_cIdxFitnessSupportedResistanceLevelRange,
         mbbs_cIdxCOUNT
     } mbbs_cIdx;
+    
+    // Characteristic buffer
+    uint8_t indoorBikeDataCharacteristicBuffer[2+2+2+2+2];
+    uint8_t fitnessMachineControlPointCharacteristicBuffer[1+2+2+1+1];
+    uint8_t fitnessMachineFeatureCharacteristicBuffer[4+4];
+    uint8_t fitnessMachineStatusCharacteristicBuffer[2];
+    uint8_t fitnessTrainingStatusCharacteristicBuffer[1+7];
+    uint8_t fitnessSupportedResistanceLevelRangeCharacteristicBuffer[2+2+2];
     
     // UUIDs for our service and characteristics
     static const uint8_t  service_base_uuid[ 16];
