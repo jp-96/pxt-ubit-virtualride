@@ -14,6 +14,13 @@ This repository can be added as an **extension** in MakeCode.
 * click on **Extensions** under the gearwheel menu
 * search for **https://github.com/jp-96/pxt-ubit-virtualride** and import
 
+With this expansion block, you can make your virtual ride fun.
+
+* Zwift - https://www.zwift.com/
+* Kinomap - https://www.kinomap.com/
+* RGT CYCLING - https://www.rgtcycling.com/
+* OneLap - https://www.onelapjapan.jp/ , https://www.onelap.com/
+
 ## Edit this project ![Build status badge](https://github.com/jp-96/pxt-ubit-virtualride/workflows/MakeCode/badge.svg)
 
 To edit this repository in MakeCode.
@@ -21,6 +28,12 @@ To edit this repository in MakeCode.
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
 * paste **https://github.com/jp-96/pxt-ubit-virtualride** and click import
+
+## Supported
+
+Support for micro:bit v1 and v2.
+
+The micro:bit runtime, also known as the DAL/CODAL is software that runs on a micro:bit to support the majority of the micro:bit programming languages. The DAL is used in v1 and the CODAL in v2.
 
 ## Blocks preview
 
