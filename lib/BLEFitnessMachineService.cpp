@@ -49,7 +49,7 @@ const uint16_t BLEFitnessMachineServiceDal::charUUID[ mbbs_cIdxCOUNT] =
 { 0x2AD2,0x2AD9,0x2ACC,0x2ADA,0x2AD3,0x2AD6};
 
 BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
-        ble(_ble), MicroBitBLEService()
+        ble(_ble)
 {
     
     // Initialise our characteristic values.
@@ -102,11 +102,6 @@ void BLEFitnessMachineServiceDal::onDataWritten( const microbit_ble_evt_write_t 
     {
         this->onFitnessMachineControlPoint((const uint8_t *)params->data, params->len);
     }
-}
-
-void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
-{
-    // pass
 }
 
 bool BLEFitnessMachineServiceDal::getGapStateConnected()
@@ -249,11 +244,6 @@ void BLEFitnessMachineServiceDal::onDataWritten(const GattWriteCallbackParams *p
     }
 }
 
-void BLEFitnessMachineServiceDal::onFitnessMachineControlPoint(const uint8_t *data, uint16_t length)
-{
-    // pass
-}
-
 bool BLEFitnessMachineServiceDal::getGapStateConnected()
 {
     return ble.getGapState().connected;
@@ -283,8 +273,7 @@ void BLEFitnessMachineServiceDal::writeCharFitnessMachineControlPoint(const uint
 #endif // MICROBIT_CODAL
 //================================================================
 
-BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl(BLEDevice &_ble) :
-    BLEFitnessMachineServiceDal(_ble)
+BLEFitnessMachineServiceImpl::BLEFitnessMachineServiceImpl()
 {
     this->lastTargetResistanceLevel10=0;
     this->lastWindSpeed1000=0;
@@ -530,7 +519,7 @@ int16_t BLEFitnessMachineServiceImpl::getGrade100()
 
 BLEFitnessMachineService::BLEFitnessMachineService()
 {
-    pBLEFitnessMachineServiceImpl = new BLEFitnessMachineServiceImpl(*uBit.ble);
+    pBLEFitnessMachineServiceImpl = new BLEFitnessMachineServiceDal(*uBit.ble);
 }
 
 void BLEFitnessMachineService::notifyIndoorBikeData(uint32_t speed100, uint32_t cadence2, int32_t resistanceLevel, int32_t power)
