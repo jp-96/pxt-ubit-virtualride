@@ -199,9 +199,9 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     );
     ble.addService(service);
 
-    // // FTMS - Service Advertising Data
-    // const uint8_t FTMS_UUID[2] = {0x26, 0x18};
-    // ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
+    // FTMS - Service Advertising Data
+    const uint8_t FTMS_UUID[2] = {0x26, 0x18};
+    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
     // uint8_t serviceData[2+1+2];
     // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
     // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
