@@ -310,6 +310,10 @@ private:
     void notifyCharIndoorBikeData(const uint8_t *data, uint16_t length);
     void writeCharFitnessMachineControlPoint(const uint8_t *data, uint16_t length);
 
+public:
+
+    void overwriteAdvertisingPayload();
+
 };
 
 //================================================================

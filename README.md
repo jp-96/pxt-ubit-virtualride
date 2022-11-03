@@ -22,8 +22,6 @@ With this expansion block, you can make your virtual ride fun.
 * OneLap - https://www.onelapjapan.jp/ , https://www.onelap.com/
 * Arcade Fitness - https://bipr.fr/arcade-running-about
 
-note: In v2, COMPLETE_LIST_16BIT_SERVICE_IDS is not advertised, so the application may not be able to find the device.
-
 ## Edit this project ![Build status badge](https://github.com/jp-96/pxt-ubit-virtualride/workflows/MakeCode/badge.svg)
 
 To edit this repository in MakeCode.
@@ -37,8 +35,6 @@ To edit this repository in MakeCode.
 Support for micro:bit v1 and v2.
 
 The micro:bit runtime, also known as the DAL/CODAL is software that runs on a micro:bit to support the majority of the micro:bit programming languages. The DAL is used in v1 and the CODAL in v2.
-
-note: In v2, COMPLETE_LIST_16BIT_SERVICE_IDS is not advertised.
 
 ## Blocks preview
 
