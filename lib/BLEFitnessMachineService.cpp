@@ -30,13 +30,21 @@ SOFTWARE.
 #if MICROBIT_CODAL
 //================================================================
 
-// Advertising includes
-#include "ble.h"
-#include "ble_hci.h"
-#include "ble_srv_common.h"
 #include "ble_advdata.h"
-#include "ble_conn_params.h"
-#include "ble_dis.h"
+
+/**
+ * For configure advertising
+ * 
+ * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L133
+ * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L134
+ * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L155
+ * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L1187
+ * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L1218
+ */
+static uint8_t              m_adv_handle    = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
+static uint8_t              m_enc_advdata[ BLE_GAP_ADV_SET_DATA_SIZE_MAX];
+
+static void microbit_ble_configureAdvertising( bool connectable, bool discoverable, bool whitelist, uint16_t interval_ms, int timeout_seconds, ble_uuid_t *p_uuid);
 
 // base uuid : x00000000-0000-1000-8000-00805F9B34FB
 const uint8_t  BLEFitnessMachineServiceDal::service_base_uuid[ 16] =
@@ -56,8 +64,7 @@ const uint16_t BLEFitnessMachineServiceDal::serviceUUID               = 0x1826;
 const uint16_t BLEFitnessMachineServiceDal::charUUID[ mbbs_cIdxCOUNT] = 
 { 0x2AD2,0x2AD9,0x2ACC,0x2ADA,0x2AD3,0x2AD6};
 
-BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
-        ble(_ble)
+BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble)
 {
 
     // Register the base UUID and create the service.
@@ -97,6 +104,7 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     // uint8_t serviceData[2+1+2];
     // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
     // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
+    overwriteAdvertisingPayload();
 
     // Default values.
     writeChrValue(mbbs_cIdxFitnessMachineFeature
@@ -106,7 +114,6 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     writeChrValue(mbbs_cIdxFitnessSupportedResistanceLevelRange
          ,(const uint8_t *)&fitnessSupportedResistanceLevelRangeCharacteristicBuffer, sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer));
     
-    overwriteAdvertisingPayload();
 }
 
 void BLEFitnessMachineServiceDal::onDataWritten( const microbit_ble_evt_write_t *params)
@@ -150,31 +157,65 @@ void BLEFitnessMachineServiceDal::overwriteAdvertisingPayload()
     // Stop
     uBit.bleManager.stopAdvertising();
 
-    uint8_t m_adv_handle;
-    static ble_advdata_t m_advdata;
-    static uint8_t  m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];
+    // Configure
     static ble_uuid_t uuid;
-    
     uuid.type = BLE_UUID_TYPE_BLE;
-    uuid.uuid = 0x1826; // FTMS 
-    m_advdata.uuids_complete.p_uuids = &uuid;
-    m_advdata.uuids_complete.uuid_cnt = 1;
-    m_advdata.include_appearance = false;
-    //MICROBIT_BLE_ECHK( sd_ble_gap_appearance_set( BLE_APPEARANCE_UNKNOWN));
-    m_advdata.name_type = BLE_ADVDATA_FULL_NAME;
+    uuid.uuid = BLEFitnessMachineServiceDal::serviceUUID;
+
+    bool connectable = true;
+    bool discoverable = true;
+    bool whitelist = false;
     
-    m_advdata.flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED | BLE_GAP_ADV_FLAG_LE_GENERAL_DISC_MODE;
+#if CONFIG_ENABLED(MICROBIT_BLE_WHITELIST)
+    // Configure a whitelist to filter all connection requetss from unbonded devices.
+    // Most BLE stacks only permit one connection at a time, so this prevents denial of service attacks.
+//    ble->gap().setScanningPolicyMode(Gap::SCAN_POLICY_IGNORE_WHITELIST);
+//    ble->gap().setAdvertisingPolicyMode(Gap::ADV_POLICY_FILTER_CONN_REQS);
+    
+    pm_peer_id_t peer_list[ MICROBIT_BLE_MAXIMUM_BONDS];
+    uint32_t list_size = MICROBIT_BLE_MAXIMUM_BONDS;
+    MICROBIT_BLE_ECHK( pm_peer_id_list( peer_list, &list_size, PM_PEER_ID_INVALID, PM_PEER_ID_LIST_ALL_ID ));
+    //MICROBIT_BLE_ECHK( pm_whitelist_set( list_size ? peer_list : NULL, list_size));
+    //MICROBIT_BLE_ECHK( pm_device_identities_list_set( list_size ? peer_list : NULL, list_size));
+    connectable = discoverable = whitelist = list_size > 0;
+    MICROBIT_DEBUG_DMESG( "whitelist size = %d", list_size);
+#endif
+  
+    // Setup advertising.
+    // WARNING: Duplication of advertisements. 
+    microbit_ble_configureAdvertising( connectable, discoverable, whitelist,
+                                       MICROBIT_BLE_ADVERTISING_INTERVAL, MICROBIT_BLE_ADVERTISING_TIMEOUT, &uuid);
+
+    // Restart
+    uBit.bleManager.advertise();
+} 
+
+/**
+ * Function to configure advertising
+ *
+ * @param connectable Choose connectable advertising events.
+ * @param discoverable Choose LE General Discoverable Mode.
+ * @param whitelist Filter scan and connect requests with whitelist.
+ * @param interval_ms Advertising interval in milliseconds.
+ * @param timeout_seconds Advertising timeout in seconds
+ */
+static void microbit_ble_configureAdvertising( bool connectable, bool discoverable, bool whitelist,
+                                               uint16_t interval_ms, int timeout_seconds,
+                                               ble_advdata_t *p_advdata)
+{
+    MICROBIT_DEBUG_DMESG( "configureAdvertising connectable %d, discoverable %d", (int) connectable, (int) discoverable);
+    MICROBIT_DEBUG_DMESG( "whitelist %d, interval_ms %d, timeout_seconds %d", (int) whitelist, (int) interval_ms, (int) timeout_seconds);
 
     ble_gap_adv_params_t    gap_adv_params;
     memset( &gap_adv_params, 0, sizeof( gap_adv_params));
-    gap_adv_params.properties.type  = true /* connectable */
+    gap_adv_params.properties.type  = connectable
                                     ? BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED
                                     : BLE_GAP_ADV_TYPE_NONCONNECTABLE_SCANNABLE_UNDIRECTED;
-    gap_adv_params.interval         = ( 1000 * MICROBIT_BLE_ADVERTISING_INTERVAL/* interval_ms */) / 625;  // 625 us units
+    gap_adv_params.interval         = ( 1000 * interval_ms) / 625;  // 625 us units
     if ( gap_adv_params.interval < BLE_GAP_ADV_INTERVAL_MIN) gap_adv_params.interval = BLE_GAP_ADV_INTERVAL_MIN;
     if ( gap_adv_params.interval > BLE_GAP_ADV_INTERVAL_MAX) gap_adv_params.interval = BLE_GAP_ADV_INTERVAL_MAX;
-    gap_adv_params.duration         = MICROBIT_BLE_ADVERTISING_TIMEOUT /* timeout_seconds */ * 100;              //10 ms units
-    gap_adv_params.filter_policy    = false /* whitelist */
+    gap_adv_params.duration         = timeout_seconds * 100;              //10 ms units
+    gap_adv_params.filter_policy    = whitelist
                                     ? BLE_GAP_ADV_FP_FILTER_BOTH
                                     : BLE_GAP_ADV_FP_ANY;
     gap_adv_params.primary_phy      = BLE_GAP_PHY_1MBPS;
@@ -183,13 +224,25 @@ void BLEFitnessMachineServiceDal::overwriteAdvertisingPayload()
     memset( &gap_adv_data, 0, sizeof( gap_adv_data));
     gap_adv_data.adv_data.p_data    = m_enc_advdata;
     gap_adv_data.adv_data.len       = BLE_GAP_ADV_SET_DATA_SIZE_MAX;
-
-    MICROBIT_BLE_ECHK( ble_advdata_encode( &m_advdata, gap_adv_data.adv_data.p_data, &gap_adv_data.adv_data.len));
+    MICROBIT_BLE_ECHK( ble_advdata_encode( p_advdata, gap_adv_data.adv_data.p_data, &gap_adv_data.adv_data.len));
+    //NRF_LOG_HEXDUMP_INFO( gap_adv_data.adv_data.p_data, gap_adv_data.adv_data.len);
     MICROBIT_BLE_ECHK( sd_ble_gap_adv_set_configure( &m_adv_handle, &gap_adv_data, &gap_adv_params));
+}
 
-    // Restart
-    uBit.bleManager.advertise();
-} 
+static void microbit_ble_configureAdvertising( bool connectable, bool discoverable, bool whitelist,
+                                               uint16_t interval_ms, int timeout_seconds, ble_uuid_t *p_uuid)
+{
+    ble_advdata_t advdata;
+    memset( &advdata, 0, sizeof( advdata));
+    advdata.name_type = BLE_ADVDATA_FULL_NAME;
+    advdata.flags     = !whitelist && discoverable
+                      ? BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED | BLE_GAP_ADV_FLAG_LE_GENERAL_DISC_MODE
+                      : BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
+    advdata.uuids_complete.p_uuids = p_uuid;
+    advdata.uuids_complete.uuid_cnt = 1;
+
+    microbit_ble_configureAdvertising( connectable, discoverable, whitelist, interval_ms, timeout_seconds, &advdata);
+}
 
 //================================================================
 #else // MICROBIT_CODAL

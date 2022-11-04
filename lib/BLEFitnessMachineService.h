@@ -269,9 +269,6 @@ public:
     BLEFitnessMachineServiceDal(BLEDevice &_ble);
 
 private:
-
-    // Bluetooth stack we're running on.
-    BLEDevice &ble;
     
     // Index for each charactersitic in arrays of handles and UUIDs
     typedef enum mbbs_cIdx
