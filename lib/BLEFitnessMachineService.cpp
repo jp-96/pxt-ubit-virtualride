@@ -41,7 +41,8 @@ SOFTWARE.
  * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L1187
  * https://github.com/lancaster-university/codal-microbit-v2/blob/master/source/bluetooth/MicroBitBLEManager.cpp#L1218
  */
-static uint8_t              m_adv_handle    = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
+// static uint8_t              m_adv_handle    = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
+static uint8_t              m_adv_handle    = 0; // WARNING: magic handle number! 
 static uint8_t              m_enc_advdata[ BLE_GAP_ADV_SET_DATA_SIZE_MAX];
 
 static void microbit_ble_configureAdvertising( bool connectable, bool discoverable, bool whitelist, uint16_t interval_ms, int timeout_seconds, ble_uuid_t *p_uuid);
@@ -55,14 +56,15 @@ const uint8_t  BLEFitnessMachineServiceDal::char_base_uuid[ 16] =
 
 // UUID(0x1826) FTMS
 const uint16_t BLEFitnessMachineServiceDal::serviceUUID               = 0x1826;
-// UUID(0x2AD2) mbbs_cIdxIndoorBikeData,
-// UUID(0x2AD9) mbbs_cIdxFitnessMachineControlPoint,
-// UUID(0x2ACC) mbbs_cIdxFitnessMachineFeature,
-// UUID(0x2ADA) mbbs_cIdxFitnessMachineStatus,
-// UUID(0x2AD3) mbbs_cIdxFitnessTrainingStatus,
-// UUID(0x2AD6) mbbs_cIdxFitnessSupportedResistanceLevelRange,
 const uint16_t BLEFitnessMachineServiceDal::charUUID[ mbbs_cIdxCOUNT] = 
-{ 0x2AD2,0x2AD9,0x2ACC,0x2ADA,0x2AD3,0x2AD6};
+{
+    0x2AD2, /* UUID(0x2AD2) mbbs_cIdxIndoorBikeData */
+    0x2AD9, /* UUID(0x2AD9) mbbs_cIdxFitnessMachineControlPoint */
+    0x2ACC, /* UUID(0x2ACC) mbbs_cIdxFitnessMachineFeature */
+    0x2ADA, /* UUID(0x2ADA) mbbs_cIdxFitnessMachineStatus */
+    0x2AD3, /* UUID(0x2AD3) mbbs_cIdxFitnessTrainingStatus */
+    0x2AD6  /* UUID(0x2AD6) mbbs_cIdxFitnessSupportedResistanceLevelRange */
+};
 
 BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble)
 {
@@ -98,14 +100,6 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble)
                          sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer), sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer),
                          microbit_propREAD);
     
-    // // FTMS - Service Advertising Data
-    // const uint8_t FTMS_UUID[2] = {0x26, 0x18};
-    // ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
-    // uint8_t serviceData[2+1+2];
-    // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
-    // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
-    overwriteAdvertisingPayload();
-
     // Default values.
     writeChrValue(mbbs_cIdxFitnessMachineFeature
          ,(const uint8_t *)&fitnessMachineFeatureCharacteristicBuffer, sizeof(fitnessMachineFeatureCharacteristicBuffer));
@@ -114,6 +108,11 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble)
     writeChrValue(mbbs_cIdxFitnessSupportedResistanceLevelRange
          ,(const uint8_t *)&fitnessSupportedResistanceLevelRangeCharacteristicBuffer, sizeof(fitnessSupportedResistanceLevelRangeCharacteristicBuffer));
     
+    // // FTMS - Service Advertising Data
+    // const uint8_t FTMS_UUID[2] = {0x26, 0x18};
+    // ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
+    overwriteAdvertisingPayload();
+
 }
 
 void BLEFitnessMachineServiceDal::onDataWritten( const microbit_ble_evt_write_t *params)
@@ -182,7 +181,6 @@ void BLEFitnessMachineServiceDal::overwriteAdvertisingPayload()
 #endif
   
     // Setup advertising.
-    // WARNING: Duplication of advertisements. 
     microbit_ble_configureAdvertising( connectable, discoverable, whitelist,
                                        MICROBIT_BLE_ADVERTISING_INTERVAL, MICROBIT_BLE_ADVERTISING_TIMEOUT, &uuid);
 
@@ -307,13 +305,6 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     );
     ble.addService(service);
 
-    // FTMS - Service Advertising Data
-    const uint8_t FTMS_UUID[2] = {0x26, 0x18};
-    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
-    // uint8_t serviceData[2+1+2];
-    // struct_pack(serviceData, "<HBH", 0x1826, 0x01, 1<<5);
-    // ble.accumulateAdvertisingPayload(GapAdvertisingData::SERVICE_DATA, serviceData, sizeof(serviceData));
-
     // Characteristic Handle
     indoorBikeDataCharacteristicHandle = indoorBikeDataCharacteristic.getValueHandle();
     fitnessMachineControlPointCharacteristicHandle = fitnessMachineControlPointCharacteristic.getValueHandle();
@@ -332,6 +323,10 @@ BLEFitnessMachineServiceDal::BLEFitnessMachineServiceDal(BLEDevice &_ble) :
     
     // onDataWritten
     ble.onDataWritten(this, &BLEFitnessMachineServiceDal::onDataWritten);
+
+    // FTMS - Service Advertising Data
+    const uint8_t FTMS_UUID[2] = {0x26, 0x18};
+    ble.accumulateAdvertisingPayload(GapAdvertisingData::COMPLETE_LIST_16BIT_SERVICE_IDS, FTMS_UUID, sizeof(FTMS_UUID));
     
 }
 
